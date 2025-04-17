@@ -1,6 +1,5 @@
 package com.jagteshwar.shoppingapp.ui.feature.home
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jagteshwar.domain.model.Product
@@ -22,17 +21,17 @@ class HomeViewModel(
         getProduct()
     }
 
-    fun getProduct(){
+    private fun getProduct(){
         viewModelScope.launch {
             _uiState.value = HomeScreenUiEvents.Loading
             getProductUseCase.execute().let { result->
                 when(result){
                     is ResultWrapper.Failure -> {
-                        val message = (result as ResultWrapper.Failure).exception.message ?: "An Error Occurred."
+                        val message = result.exception.message ?: "An Error Occurred."
                         _uiState.value = HomeScreenUiEvents.Error(message)
                     }
                     is ResultWrapper.Success -> {
-                        val data = (result as ResultWrapper.Success).value
+                        val data = result.value
                         _uiState.value = HomeScreenUiEvents.Success(data)
                     }
                 }
