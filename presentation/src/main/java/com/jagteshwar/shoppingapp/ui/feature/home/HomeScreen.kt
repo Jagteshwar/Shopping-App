@@ -2,6 +2,7 @@ package com.jagteshwar.shoppingapp.ui.feature.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +56,22 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+    var error by remember {
+        mutableStateOf<String?>(null)
+    }
+    var feature by remember {
+        mutableStateOf<List<Product>>(emptyList())
+    }
+    var popularProducts by remember {
+        mutableStateOf<List<Product>>(emptyList())
+    }
+    var categories by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+
     Scaffold {
         Surface(
             modifier = Modifier
@@ -61,23 +81,33 @@ fun HomeScreen(
 
             when (uiState) {
                 is HomeScreenUiEvents.Error -> {
-                    Text(text = (uiState as HomeScreenUiEvents.Error).message)
+                    val errorMsg =  (uiState as HomeScreenUiEvents.Error).message
+                    isLoading = false
+                    error = errorMsg
                 }
 
                 is HomeScreenUiEvents.Loading -> {
-                    Box {
-                    CircularProgressIndicator(modifier = Modifier
-                        .width(30.dp)
-                        .height(30.dp)
-                        .align(Alignment.Center))
-                    }
+                    isLoading = true
+                    error = null
                 }
 
                 is HomeScreenUiEvents.Success -> {
                     val data = (uiState as HomeScreenUiEvents.Success)
-                    HomeContent(featured = data.featured, popularProducts = data.popularProducts)
+                    feature = data.featured
+                    popularProducts = data.popularProducts
+                    categories = data.categoryList
+                    isLoading = false
+                    error = null
+
                 }
             }
+            HomeContent(
+                featured = feature,
+                popularProducts = popularProducts,
+                categories = categories,
+                isLoading,
+                error
+            )
         }
     }
 }
@@ -130,7 +160,10 @@ fun ProfileHeader() {
 @Composable
 fun HomeContent(
     featured: List<Product>,
-    popularProducts: List<Product>
+    popularProducts: List<Product>,
+    categories: List<String>,
+    isLoading: Boolean,
+    errorMsg: String?
 ) {
     LazyColumn {
         item {
@@ -141,6 +174,45 @@ fun HomeContent(
         }
 
         item {
+            if(isLoading){
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(50.dp)
+                    )
+                    Text(
+                        text = "Loading...",
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            errorMsg?.let {
+                Text(
+                    text = errorMsg,
+                    style = MaterialTheme.typography.bodyMedium,
+
+                )
+            }
+            if(categories.isNotEmpty()){
+                LazyRow {
+                    items(categories){category->
+                        Text(
+                            text = category.replaceFirstChar { it.uppercase() },
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(8.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.size(16.dp))
+            }
             if (featured.isNotEmpty()) {
                 HomeProductRow(products = featured, title = "Featured")
                 Spacer(modifier = Modifier.size(16.dp))
