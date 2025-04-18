@@ -22,8 +22,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -132,7 +136,10 @@ fun HomeContent(
         item {
             ProfileHeader()
             Spacer(modifier = Modifier.size(16.dp))
+            SearchBar(value = "", onTextChanged = {})
+            Spacer(modifier = Modifier.size(16.dp))
         }
+
         item {
             if (featured.isNotEmpty()) {
                 HomeProductRow(products = featured, title = "Featured")
@@ -143,6 +150,40 @@ fun HomeContent(
             }
         }
     }
+}
+
+@Composable
+fun SearchBar(
+    value: String,
+    onTextChanged: (String)-> Unit
+) {
+    TextField(
+        value = value,
+        onValueChange = onTextChanged,
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize(),
+        shape = RoundedCornerShape(32.dp),
+        leadingIcon = {
+            Image(
+                painter = painterResource(id = R.drawable.ic_search),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        },
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedContainerColor = Color.LightGray.copy(alpha = 0.3f),
+            unfocusedContainerColor = Color.LightGray.copy(alpha = 0.3f)
+        ),
+        placeholder = {
+            Text(
+                text = "Search here",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    )
 }
 
 @Composable
@@ -161,6 +202,7 @@ fun HomeProductRow(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .align(Alignment.CenterStart),
+                fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = "View All",
@@ -208,12 +250,15 @@ fun ProductItem(product: Product) {
                 maxLines = 1,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 8.dp),
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "$${product.price}",
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(horizontal = 8.dp),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
             )
 
         }
