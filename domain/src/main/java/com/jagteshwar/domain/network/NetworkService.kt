@@ -3,7 +3,7 @@ package com.jagteshwar.domain.network
 import com.jagteshwar.domain.model.Product
 
 interface NetworkService {
-    suspend fun getProducts(): ResultWrapper<List<Product>>
+    suspend fun getProducts(category: String?): ResultWrapper<List<Product>>
 }
 
 

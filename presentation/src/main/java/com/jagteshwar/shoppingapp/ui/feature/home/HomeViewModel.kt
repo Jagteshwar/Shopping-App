@@ -12,28 +12,41 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val getProductUseCase: GetProductUseCase
-): ViewModel() {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeScreenUiEvents>(HomeScreenUiEvents.Loading)
     val uiState: StateFlow<HomeScreenUiEvents> = _uiState.asStateFlow()
 
     init {
-        getProduct()
+        getAllProducts()
     }
 
-    private fun getProduct(){
+    private fun getAllProducts() {
         viewModelScope.launch {
             _uiState.value = HomeScreenUiEvents.Loading
-            getProductUseCase.execute().let { result->
-                when(result){
-                    is ResultWrapper.Failure -> {
-                        val message = result.exception.message ?: "An Error Occurred."
-                        _uiState.value = HomeScreenUiEvents.Error(message)
-                    }
-                    is ResultWrapper.Success -> {
-                        val data = result.value
-                        _uiState.value = HomeScreenUiEvents.Success(data)
-                    }
+            val featured = getProduct("electronics")
+            val popularProducts = getProduct("jewelery")
+            if(featured.isEmpty() || popularProducts.isEmpty()){
+                _uiState.value = HomeScreenUiEvents.Error("Failed to load products.")
+                return@launch
+            }
+            _uiState.value = HomeScreenUiEvents.Success(
+                featured = featured,
+                popularProducts = popularProducts
+            )
+        }
+    }
+
+    private suspend fun getProduct(category: String?): List<Product> {
+        getProductUseCase.execute(category).let { result ->
+            when (result) {
+                is ResultWrapper.Failure -> {
+                    return emptyList()
+                }
+
+                is ResultWrapper.Success -> {
+                    return result.value
+
                 }
             }
         }
@@ -41,7 +54,9 @@ class HomeViewModel(
 }
 
 sealed class HomeScreenUiEvents {
-    data object Loading: HomeScreenUiEvents()
-    data class Success(val data: List<Product>): HomeScreenUiEvents()
-    data class Error(val message: String): HomeScreenUiEvents()
+    data object Loading : HomeScreenUiEvents()
+    data class Success(val featured: List<Product>, val popularProducts: List<Product>) :
+        HomeScreenUiEvents()
+
+    data class Error(val message: String) : HomeScreenUiEvents()
 }

@@ -20,9 +20,12 @@ import java.io.IOException
 class NetworkServiceImpl(
     val client: HttpClient
 ) : NetworkService {
-    override suspend fun getProducts(): ResultWrapper<List<Product>> {
+    private val baseUrl = "https://fakestoreapi.com"
+    override suspend fun getProducts(category: String?): ResultWrapper<List<Product>> {
+        val url = if(category!=null)"$baseUrl/products/category/$category" else "$baseUrl/products"
+
         return makeWebRequest(
-            url = "https://fakestoreapi.com/products",
+            url = url,
             method = HttpMethod.Get,
             mapper = { dataModels: List<DataProductModel> ->
                 dataModels.map { it.toProduct() }
@@ -39,7 +42,7 @@ class NetworkServiceImpl(
         parameters: Map<String, String> = emptyMap(),
         noinline mapper: ((T) -> R)? = null
     ): ResultWrapper<R> {
-       return try {
+        return try {
             val response = client.request(url) {
                 this.method = method
 
@@ -50,19 +53,19 @@ class NetworkServiceImpl(
                         }
                     })
                 }
-                
+
                 headers.forEach { (key, value) ->
                     header(key, value)
                 }
 
-                if(body != null){
+                if (body != null) {
                     this.body = body
                 }
 
                 contentType(ContentType.Application.Json)
 
             }.body<T>()
-           val result: R = mapper?.invoke(response) ?: response as R
+            val result: R = mapper?.invoke(response) ?: response as R
             ResultWrapper.Success(result)
         } catch (e: ClientRequestException) {
             ResultWrapper.Failure(e)

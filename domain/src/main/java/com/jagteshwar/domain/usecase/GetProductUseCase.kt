@@ -6,5 +6,5 @@ class GetProductUseCase(
     private val productRepository: ProductRepository
 ) {
 
-    suspend fun execute() = productRepository.getProduct()
+    suspend fun execute(category: String?) = productRepository.getProduct(category)
 }
