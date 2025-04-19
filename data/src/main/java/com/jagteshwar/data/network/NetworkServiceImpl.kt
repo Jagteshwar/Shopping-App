@@ -17,6 +17,7 @@ import io.ktor.http.contentType
 import io.ktor.util.InternalAPI
 import java.io.IOException
 
+@Suppress("UNCHECKED_CAST")
 class NetworkServiceImpl(
     val client: HttpClient
 ) : NetworkService {

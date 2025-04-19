@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
@@ -115,8 +114,8 @@ class MainActivity : ComponentActivity() {
     }
 
     sealed class BottomNavItems(val route: String, val title: String, val icon: Int) {
-        object Home : BottomNavItems("home", "Home", R.drawable.ic_home)
-        object Cart : BottomNavItems("cart", "Cart", R.drawable.ic_cart)
-        object Profile : BottomNavItems("profile", "Profile", R.drawable.ic_profile_silhouette)
+        data object Home : BottomNavItems("home", "Home", R.drawable.ic_home)
+        data object Cart : BottomNavItems("cart", "Cart", R.drawable.ic_cart)
+        data object Profile : BottomNavItems("profile", "Profile", R.drawable.ic_profile_silhouette)
     }
 }
